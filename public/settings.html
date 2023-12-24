@@ -1,0 +1,32 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>settings</title>
+    <link rel="stylesheet" href="/css/settings.css">
+    <link rel="icon" href="/images/icon/icon.ico" type="image/png">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+<header>
+    <h1>Settings</h1>
+</header>
+
+<div class="container">
+    <div class="settings-container">
+        <h3 id="numofimg">Num <i class="fa fa-image">&nbsp;&nbsp;<b>1</b></i></h3>
+        <input type="range" id="num" name="imageCount" min="1" max="10" value="1">
+        <label><h3>Size</h3></label>
+        <label for="sizeSmall"><input type="radio" id="sizeSmall" name="size"> 256 x 256</label>
+        <label for="sizeMedium"><input type="radio" id="sizeMedium" name="size"> 512 x 512</label>
+        <label for="sizeLarge"><input type="radio" id="sizeLarge" name="size"> 1024 x 1024</label>
+        <h3>Save automatically</h3>
+        <label><input type="checkbox" id="autoSave" checked> Yes</label>
+        <p>ps: check saved images in "/images"</p>
+        <button id="savesettings">Save settings</button>
+        <button id="back">back <i class="fa fa-sign-out"></i></button>
+    </div>
+</div>
+<script src="/js/settings.js"></script>
+</body>
+</html>

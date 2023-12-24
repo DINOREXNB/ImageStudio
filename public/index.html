@@ -1,0 +1,28 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>welcome!</title>
+    <link rel="icon" href="/images/icon/icon.ico" type="image/png">
+    <link rel="stylesheet" href="/css/index.css">
+</head>
+<body>
+    <div class="login-container">
+        <h2>Login</h2>
+        <form method="POST" action="/login">
+            <label for="username">Username:</label>
+            <input type="text" id="account" name="username" required>
+        
+            <label for="apikey">API Key:</label>
+            <input type="password" id="apikey" name="apikey" required>
+        
+            <button id="login">Login</button>
+        </form>
+    </div>
+</body>
+<script> document.addEventListener('keydown', function(event) {
+    if (event.key === 'Enter') {
+      document.getElementById('login').click();
+    }
+  });</script>
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DALLE</title>
+</head>
+<link rel="stylesheet" href="/css/hall.css">
+<link rel="icon" href="/images/icon/icon.ico" type="image/png">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+<body>     
+    <div class="chatbox" id="chatbox">
+        <button id="sidebar-toggle" class="toggle-btn"><i class="fa fa-angle-double-right"></i></button>  
+        <div class="sidebar" id="sidebar">
+            <ul class="sidebar-content">
+                <div class="history-chat" id="historychat">
+                    <button class="btn" id="new-chat">New chat <i class="fa fa-comment-o"></i></button>
+                </div>
+                <hr>
+                <li> <button class="btn" id="gen-img-only">Gen img only <i class="fa fa-image"></i></button></li>
+                <li><button class="btn" id="edit-image" title="Create mask">Edit image <i class="fa fa-pencil"></i></button></li>
+                <li><button class="btn" id="usage">Usage <i class="fa fa-bar-chart"></i></button></li>
+                <li><button class="btn" id="settings">Settings <i class="fa fa-gear"></i></button><li> 
+                <li><button class="btn" id="logout">Logout <i class="fa fa-sign-out"></i></button></li>
+            </ul>
+        </div>
+        <div class="interaction" id="interaction"></div>
+        <div class="mailbox">
+            <textarea name="" id="query" cols="30" rows="10" class="query" placeholder="Message DALL·E/GPT-4..."></textarea>
+            <input type="file" id="imagefile" style="display: none;">
+            <button id="send-image" class="btn">image <i class="fa fa-image"></i></i></button>
+            <button id="send" class="btn">send <i class="fa fa-paper-plane" ></i></button>
+        </div>
+    </div>
+    <script src="/js/hall.js"></script>
+</body>
+</html>

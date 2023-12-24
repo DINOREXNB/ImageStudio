@@ -1,0 +1,7 @@
+node_modules/
+/package-lock.json
+/draft.txt
+/data/user.db
+/TODO.md
+/images/demo
+**/*dlg*/
