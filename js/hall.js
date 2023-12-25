@@ -83,6 +83,7 @@ send.addEventListener('click',()=>{
                 method:'POST',
                 body:JSON.stringify({
                     "prompt":text,
+                    "role":"user"
                 })
             })
             .then((response)=>response.json())
@@ -263,8 +264,10 @@ window.onload=async ()=>{
     var index=localStorage.getItem("dialogueid");
     await getAccount();
     await load_sidebar();
-    if(index==undefined||index==null){
+    if(index=="undefined"||index==null){
         interaction.innerHTML=guide;
+        index=0;
+        await loadDialogue(index);
     }else{
         await loadDialogue(index);
     }

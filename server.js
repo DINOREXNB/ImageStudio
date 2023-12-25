@@ -25,6 +25,7 @@ var preference={
 }
 var current_dlgid=0;
 var gen_img_only=1;
+var prompt_temp="";
 /********************read Settings.yaml********************/
 var settings;
 try {
@@ -252,12 +253,14 @@ app.post('/gen-img',(req,res)=>{
             readFileAndProcess(sendRequest);
         }
         function readFileAndProcess(callback) {
+            if(!fs.existsSync(imgdir+`/dlg${current_dlgid_temp}`)){
+                fs.mkdirSync(imgdir+`/dlg${current_dlgid_temp}`);
+            }
             fs.readdir(imgdir + `/dlg${current_dlgid_temp}`, (err, files) => {
                 if (err) {
                     console.error("Error reading folder", err.message);
                     return;
                 }
-
                 if (files.length == 0 || gen_img_only) {
                     console.log("gen...");
                     callback({
@@ -327,7 +330,11 @@ app.post('/gen-img',(req,res)=>{
                                     rowlength=rows.length;
                                     console.log(response.data);
                                     const insertStmt = db.prepare("INSERT INTO dialogue VALUES (?,?,?,?,?,?)");
-                                    insertStmt.run(current_dlgid_temp,account,`user`,rowlength,body.prompt,"txt");
+                                    if(body.role=="user"){
+                                        insertStmt.run(current_dlgid_temp,account,`user`,rowlength,body.prompt,"txt");
+                                    }else{
+                                        insertStmt.run(current_dlgid_temp,account,`user`,rowlength,prompt_temp,"txt");
+                                    }
                                     insertStmt.finalize();
                                     if(response.data.data.length==1&&model=="dall-e-3"){
                                         rowlength++;
@@ -409,6 +416,7 @@ app.post('/prompt-edit',(req,res)=>{
     });
     req.on('end',()=>{
         body=JSON.parse(body);
+        prompt_temp=body.prompt;
         db.all("SELECT * FROM prompt WHERE account = ? AND id = ?",[account,current_dlgid],(err,rows)=>{
             if(err){
                 console.log("Error: ",err.message);
@@ -447,7 +455,7 @@ app.post('/prompt-edit',(req,res)=>{
                         console.log(response.data);
                         console.log(response.data.choices[0]);
                         editted_prompt=response.data.choices[0].message.content
-                        axios.post(`http://${host}/gen-img`,JSON.stringify({"prompt":response.data.choices[0].message.content}))
+                        axios.post(`http://${host}/gen-img`,JSON.stringify({"prompt":response.data.choices[0].message.content,"role":"assistant"}))
                         .then((response)=>{
                             console.log(response.data);
                             const updateStmt = db.prepare("UPDATE prompt SET content = ? WHERE id = ? AND account = ?");
@@ -677,54 +685,3 @@ app.post('/getNumofDialogue',(req,res)=>{
         } 
     });
 });
-
-/*
-curl https://api.openai.com/v1/images/edits \
-  -H "Authorization: Bearer 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" \
-  -F image="@0.png" \
-  -F prompt="人还不够多！" \
-  -F n=1 \
-  -F size="1024x1024"
-*/
-/*
-curl https://api.openai.com/v1/images/generations \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer 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" \
-  -d '{
-    "model": "dall-e-3",
-    "prompt": "A cute baby sea otter",
-    "n": 1,
-    "size": "1024x1024"
-  }'
-
-
-    curl https://api.openai.com/v1/models \
-  -H "Authorization: Bearer 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"
-
-
-
-  curl https://api.openai.com/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer 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" \
-  -d '{
-    "model": "gpt-4-vision-preview",
-    "messages": [
-      {
-        "role": "user",
-        "content": [
-          {
-            "type": "text",
-            "text": "What’s in this image?"
-          },
-          {
-            "type": "image_url",
-            "image_url": {
-              "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg"
-            }
-          }
-        ]
-      }
-    ],
-    "max_tokens": 300
-  }'
-*/
