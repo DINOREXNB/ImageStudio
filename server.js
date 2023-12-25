@@ -222,6 +222,8 @@ app.post('/gen-img',(req,res)=>{
     var rowlength=0;
     var is_edit=0;
     var current_dlgid_temp=current_dlgid;
+    var datalength=0;
+    var url_list=[];
     req.on('data',(chunk)=>{
         body+=chunk.toString();
     });
@@ -292,6 +294,8 @@ app.post('/gen-img',(req,res)=>{
                 }
             })
             .then((response)=>{
+                datalength=response.data.data.length;
+                url_list=response.data.data;
                 db.serialize(()=>{
                     db.all("SELECT * FROM prompt WHERE account = ? AND id = ?",[account,current_dlgid],(err,rows)=>{
                         if(err){
@@ -323,55 +327,62 @@ app.post('/gen-img',(req,res)=>{
                                     console.log(response.data);
                                     const insertStmt = db.prepare("INSERT INTO dialogue VALUES (?,?,?,?,?,?)");
                                     insertStmt.run(current_dlgid_temp,account,`user`,rowlength,body.prompt,"txt");
+                                    insertStmt.finalize();
                                     if(response.data.data.length==1&&model=="dall-e-3"){
                                         rowlength++;
+                                        const insertStmt = db.prepare("INSERT INTO dialogue VALUES (?,?,?,?,?,?)");
                                         insertStmt.run(current_dlgid_temp, account, `assistant`,rowlength, response.data.data[0].revised_prompt, "txt");
-                                    }
-                                    for(var index=0;index<response.data.data.length;index++){
-                                        var filenum=0;
-                                        rowlength++;
-                                        insertStmt.run(current_dlgid_temp,account,`assistant`,rowlength,"","png");
+                                        insertStmt.finalize();
+                                    }else{
                                         fs.readdir(imgdir+`/dlg${current_dlgid_temp}`,(err,files)=>{
                                             if(err){
                                                 console.error("Error reading folder",err.message);
                                                 return;
                                             }
                                             filenum=files.length;
-                                        });
-                                        if(preference.autosave){
-                                            axios.get(response.data.data[index].url,{
-                                                responseType:"stream"
-                                            }).then((response)=>{
-                                                const alphaValue = 1
-                                                const outputStream = fs.createWriteStream(imgdir+`/dlg${current_dlgid_temp}/${filenum}.png`);
-                                                response.data.pipe(outputStream);
-                                                outputStream.on('finish', () => {
-                                                    console.log('Image download complete!');
-                                                    Jimp.read(imgdir+`/dlg${current_dlgid_temp}/${filenum}.png`)
-                                                    .then(image => {
-                                                        image.rgba(true);
-                                                        image.scan(0, 0, image.bitmap.width, image.bitmap.height, function (x, y, idx) {
-                                                            this.bitmap.data[idx + 3] = Math.floor(255 * alphaValue); 
+                                            for(var index=0;index<datalength;index++){
+                                                var filenum=0;
+                                                rowlength++;
+                                                const insertStmt = db.prepare("INSERT INTO dialogue VALUES (?,?,?,?,?,?)");
+                                                insertStmt.run(current_dlgid_temp,account,`assistant`,rowlength,"","png");
+                                                insertStmt.finalize();
+                                                if(preference.autosave){
+                                                    const outputStream = fs.createWriteStream(imgdir+`/dlg${current_dlgid_temp}/${filenum+index}.png`);
+                                                    axios.get(url_list[index].url,{
+                                                        responseType:"stream"
+                                                    }).then((response)=>{
+                                                        const alphaValue = 1
+                                                        response.data.pipe(outputStream);
+                                                        outputStream.on('finish', () => {
+                                                            console.log('Image download complete!');
+                                                            if(datalength<=1){
+                                                                Jimp.read(imgdir+`/dlg${current_dlgid_temp}/${filenum}.png`)
+                                                                .then(image => {
+                                                                    image.rgba(true);
+                                                                    image.scan(0, 0, image.bitmap.width, image.bitmap.height, function (x, y, idx) {
+                                                                        this.bitmap.data[idx + 3] = Math.floor(255 * alphaValue); 
+                                                                    });
+                                                                    return image.write(imgdir+`/dlg${current_dlgid_temp}/${filenum}.png`);
+                                                                })
+                                                                .then(() => {
+                                                                    console.log('Conversion complete!');
+                                                                })
+                                                                .catch(err => {
+                                                                    console.error(err);
+                                                                });
+                                                            }
                                                         });
-                                                        return image.write(imgdir+`/dlg${current_dlgid_temp}/${filenum}.png`);
+                                                        outputStream.on('error', err => {
+                                                            console.error('Error downloading image:', err);
+                                                        });
                                                     })
-                                                    .then(() => {
-                                                        console.log('Conversion complete!');
-                                                    })
-                                                    .catch(err => {
-                                                        console.error(err);
+                                                    .catch((error) => {
+                                                        console.error('Error downloading image:', error);
                                                     });
-                                                });
-                                                outputStream.on('error', err => {
-                                                    console.error('Error downloading image:', err);
-                                                });
-                                            })
-                                            .catch((error) => {
-                                                console.error('Error downloading image:', error);
-                                            });
-                                        }
-                                    }
-                                    insertStmt.finalize();
+                                                }
+                                            }
+                                        });
+                                    }                                    
                                     res.json({
                                         "result":response.data.data
                                     });
@@ -622,6 +633,7 @@ app.post('/loadDialogue',(req,res)=>{
                                     }
                                     default:{
                                         HTML+=`<div class="dlg"><h2>DALL·E</h2><div class="image"><img src="/images/dlg${body.id}/${img_cnt}.${rows[index].type}" alt=""></div></div>`;
+                                        img_cnt++;
                                         break;
                                     }
                                 }
@@ -630,10 +642,14 @@ app.post('/loadDialogue',(req,res)=>{
                             case "user":{
                                 switch(rows[index].type){
                                     case "txt":{
-                                        if(rows[index+1].name=="user"&&rows[index+1].type!="txt"){
-                                            HTML+=`<div class="dlg"><h2>${account}</h2><div class="text">${rows[index].content}</div><div class="image"><img src="/images/dlg${body.id}/${img_cnt}.${rows[index+1].type}" alt=""></div></div>`;
-                                            img_cnt++;
-                                            index++;
+                                        if(index<rows.length-1){
+                                            if(rows[index+1].name=="user"&&rows[index+1].type!="txt"){
+                                                HTML+=`<div class="dlg"><h2>${account}</h2><div class="text">${rows[index].content}</div><div class="image"><img src="/images/dlg${body.id}/${img_cnt}.${rows[index+1].type}" alt=""></div></div>`;
+                                                img_cnt++;
+                                                index++;
+                                            }else{
+                                                HTML+=`<div class="dlg"><h2>${account}</h2><div class="text">${rows[index].content}</div></div>`;    
+                                            }
                                         }else{
                                             HTML+=`<div class="dlg"><h2>${account}</h2><div class="text">${rows[index].content}</div></div>`;
                                         }

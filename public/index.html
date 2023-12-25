@@ -20,9 +20,12 @@
         </form>
     </div>
 </body>
-<script> document.addEventListener('keydown', function(event) {
-    if (event.key === 'Enter') {
-      document.getElementById('login').click();
-    }
-  });</script>
+<script>
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+        document.getElementById('login').click();
+        }
+    });
+    localStorage.setItem("dialogueid",undefined);
+</script>
 </html>
