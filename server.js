@@ -333,56 +333,55 @@ app.post('/gen-img',(req,res)=>{
                                         const insertStmt = db.prepare("INSERT INTO dialogue VALUES (?,?,?,?,?,?)");
                                         insertStmt.run(current_dlgid_temp, account, `assistant`,rowlength, response.data.data[0].revised_prompt, "txt");
                                         insertStmt.finalize();
-                                    }else{
-                                        fs.readdir(imgdir+`/dlg${current_dlgid_temp}`,(err,files)=>{
-                                            if(err){
-                                                console.error("Error reading folder",err.message);
-                                                return;
-                                            }
-                                            filenum=files.length;
-                                            for(var index=0;index<datalength;index++){
-                                                var filenum=0;
-                                                rowlength++;
-                                                const insertStmt = db.prepare("INSERT INTO dialogue VALUES (?,?,?,?,?,?)");
-                                                insertStmt.run(current_dlgid_temp,account,`assistant`,rowlength,"","png");
-                                                insertStmt.finalize();
-                                                if(preference.autosave){
-                                                    const outputStream = fs.createWriteStream(imgdir+`/dlg${current_dlgid_temp}/${filenum+index}.png`);
-                                                    axios.get(url_list[index].url,{
-                                                        responseType:"stream"
-                                                    }).then((response)=>{
-                                                        const alphaValue = 1
-                                                        response.data.pipe(outputStream);
-                                                        outputStream.on('finish', () => {
-                                                            console.log('Image download complete!');
-                                                            if(datalength<=1){
-                                                                Jimp.read(imgdir+`/dlg${current_dlgid_temp}/${filenum}.png`)
-                                                                .then(image => {
-                                                                    image.rgba(true);
-                                                                    image.scan(0, 0, image.bitmap.width, image.bitmap.height, function (x, y, idx) {
-                                                                        this.bitmap.data[idx + 3] = Math.floor(255 * alphaValue); 
-                                                                    });
-                                                                    return image.write(imgdir+`/dlg${current_dlgid_temp}/${filenum}.png`);
-                                                                })
-                                                                .then(() => {
-                                                                    console.log('Conversion complete!');
-                                                                })
-                                                                .catch(err => {
-                                                                    console.error(err);
+                                    }
+                                    fs.readdir(imgdir+`/dlg${current_dlgid_temp}`,(err,files)=>{
+                                        if(err){
+                                            console.error("Error reading folder",err.message);
+                                            return;
+                                        }
+                                        filenum=files.length;
+                                        for(var index=0;index<datalength;index++){
+                                            var filenum=0;
+                                            rowlength++;
+                                            const insertStmt = db.prepare("INSERT INTO dialogue VALUES (?,?,?,?,?,?)");
+                                            insertStmt.run(current_dlgid_temp,account,`assistant`,rowlength,"","png");
+                                            insertStmt.finalize();
+                                            if(preference.autosave){
+                                                const outputStream = fs.createWriteStream(imgdir+`/dlg${current_dlgid_temp}/${filenum+index}.png`);
+                                                axios.get(url_list[index].url,{
+                                                    responseType:"stream"
+                                                }).then((response)=>{
+                                                    const alphaValue = 1
+                                                    response.data.pipe(outputStream);
+                                                    outputStream.on('finish', () => {
+                                                        console.log('Image download complete!');
+                                                        if(datalength<=1){
+                                                            Jimp.read(imgdir+`/dlg${current_dlgid_temp}/${filenum}.png`)
+                                                            .then(image => {
+                                                                image.rgba(true);
+                                                                image.scan(0, 0, image.bitmap.width, image.bitmap.height, function (x, y, idx) {
+                                                                    this.bitmap.data[idx + 3] = Math.floor(255 * alphaValue); 
                                                                 });
-                                                            }
-                                                        });
-                                                        outputStream.on('error', err => {
-                                                            console.error('Error downloading image:', err);
-                                                        });
-                                                    })
-                                                    .catch((error) => {
-                                                        console.error('Error downloading image:', error);
+                                                                return image.write(imgdir+`/dlg${current_dlgid_temp}/${filenum}.png`);
+                                                            })
+                                                            .then(() => {
+                                                                console.log('Conversion complete!');
+                                                            })
+                                                            .catch(err => {
+                                                                console.error(err);
+                                                            });
+                                                        }
                                                     });
-                                                }
+                                                    outputStream.on('error', err => {
+                                                        console.error('Error downloading image:', err);
+                                                    });
+                                                })
+                                                .catch((error) => {
+                                                    console.error('Error downloading image:', error);
+                                                });
                                             }
-                                        });
-                                    }                                    
+                                        }
+                                    });                         
                                     res.json({
                                         "result":response.data.data
                                     });
