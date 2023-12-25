@@ -224,6 +224,7 @@ app.post('/gen-img',(req,res)=>{
     var current_dlgid_temp=current_dlgid;
     var datalength=0;
     var url_list=[];
+    var filenum=0;
     req.on('data',(chunk)=>{
         body+=chunk.toString();
     });
@@ -341,7 +342,6 @@ app.post('/gen-img',(req,res)=>{
                                         }
                                         filenum=files.length;
                                         for(var index=0;index<datalength;index++){
-                                            var filenum=0;
                                             rowlength++;
                                             const insertStmt = db.prepare("INSERT INTO dialogue VALUES (?,?,?,?,?,?)");
                                             insertStmt.run(current_dlgid_temp,account,`assistant`,rowlength,"","png");
