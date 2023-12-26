@@ -308,7 +308,7 @@ app.post('/gen-img',(req,res)=>{
                         }else{
                             if(rows.length==0){
                                 const insertStmt = db.prepare("INSERT INTO prompt VALUES (?,?,?)");
-                                insertStmt.run(current_dlgid,account,response.data.data[0].revised_prompt);
+                                insertStmt.run(current_dlgid,account,body.prompt);
                                 insertStmt.finalize();
                             }
                         }
@@ -424,7 +424,7 @@ app.post('/prompt-edit',(req,res)=>{
             }else{
                 if(rows.length==0){
                     const insertStmt = db.prepare("INSERT INTO prompt VALUES (?,?,?)");
-                    insertStmt.run(current_dlgid,account,"");
+                    insertStmt.run(current_dlgid,account,prompt_temp);
                     insertStmt.finalize(()=>{
                         edit_prompt("");
                     });
@@ -552,26 +552,11 @@ app.post('/vision',(req,res)=>{
                                         return;
                                     }
                                     filenum=files.length;
+                                    const binaryData = Buffer.from(body.base64.replace(/^data:image\/\w+;base64,/, ''), 'base64');
+                                    const filePath = imgdir+`/dlg${current_dlgid}/${filenum}.${body.type}`; 
+                                    fs.writeFileSync(filePath, binaryData);
+                                    console.log('Image download complete!');
                                 });
-                                const binaryData = Buffer.from(body.base64.replace(/^data:image\/\w+;base64,/, ''), 'base64');
-                                const filePath = imgdir+`/dlg${current_dlgid}/${filenum}.${body.type}`; 
-                                fs.writeFileSync(filePath, binaryData);
-                                console.log('Image download complete!');
-                                // const alphaValue = 1
-                                // Jimp.read(imgdir+`/dlg${current_dlgid}/${filenum}.png`)
-                                // .then(image => {
-                                //     image.rgba(true);
-                                //     image.scan(0, 0, image.bitmap.width, image.bitmap.height, function (x, y, idx) {
-                                //         this.bitmap.data[idx + 3] = Math.floor(255 * alphaValue); 
-                                //     });
-                                //     return image.write(imgdir+`/dlg${current_dlgid}/${filenum}.png`);
-                                // })
-                                // .then(() => {
-                                //     console.log('Conversion complete!');
-                                // })
-                                // .catch(err => {
-                                //     console.error(err);
-                                // });
                             }
                         });
                     }
@@ -632,6 +617,8 @@ app.post('/loadDialogue',(req,res)=>{
                                                 HTML+=`<div class="dlg"><h2>DALL·E</h2><div class="text">${rows[index].content}</div><div class="image"><img src="/images/dlg${body.id}/${img_cnt}.png" alt=""></div></div>`;
                                                 img_cnt++;
                                                 index++;
+                                            }else{
+                                                HTML+=`<div class="dlg"><h2>DALL·E</h2><div class="text">${rows[index].content}</div></div>`;    
                                             }
                                         }else{
                                             HTML+=`<div class="dlg"><h2>DALL·E</h2><div class="text">${rows[index].content}</div></div>`;
