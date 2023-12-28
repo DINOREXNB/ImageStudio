@@ -9,10 +9,10 @@
 .interaction{
     width: 100%;
     flex: 1;
-    border-radius: 10px;
     background-color: #000000;
     overflow-y: scroll;
     display: inline-block;
+    border: 1px rgb(211, 211, 211) solid;
 }
 
 
@@ -27,7 +27,6 @@
     border-radius: 10px;
     border: #ffffff solid 1px;
     background-color: #333;
-    /* overflow-x: scroll; */
 }
 
 .query{
@@ -198,10 +197,8 @@ button {
 }
 
 .dlg{
-    border: 1px solid rgb(160, 148, 148);
     margin-bottom: 10px;
     margin-left: 5px;
-    /* overflow-x: scroll; */
 }
 
 .text{
@@ -226,6 +223,8 @@ h2{
 .image img{
     width:75%;
     max-width: 400px;
+    border: 1px solid;
+    border-radius: 3px;
 }
 
 ::-webkit-scrollbar {
@@ -250,4 +249,26 @@ textarea{
 }
 textarea:hover{
     background-color: #212121; 
+}
+
+.down{
+    position: absolute;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    left:50%;
+    bottom: 130px;
+    z-index: 9999;
+    cursor: pointer;
+    color: white;
+    background-color: transparent;
+    border: 1px solid white;
+    transition: ease background-color 0.2s;
+    transition: transform 0.2s ease-in-out;
+    -webkit-text-stroke: 0.5px #000000;
+}
+
+.down:hover{
+    background-color: #575656;
+    transform: scale(1.03);
 }

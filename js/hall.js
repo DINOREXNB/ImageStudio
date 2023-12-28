@@ -10,6 +10,7 @@ const logout=document.getElementById('logout');
 const send_image=document.getElementById('send-image');
 const fileInput = document.getElementById('imagefile');
 const editimage=document.getElementById('edit-image');
+const down=document.getElementById('down');
 const guide=`<h1 style="margin-top: 60px;text-align: center;position: absolute;left: 50%;transform: translate(-50%, -50%);">What can you do?</h1><h2 style="position: relative;top:90px">Draw picture</h2><h4 style="margin-left: 30px;position: relative;margin-top:110px">Input your prompt to command DALL·E</h4><h2 style="position: relative;top:90px">Image vision</h2><h4 style="margin-left: 30px;position: relative;margin-top:110px">Use gpt-4 to understand your image<br>(Conversation records will not be saved)</h4>`
 var account="";
 var gen_img_only=1;
@@ -140,7 +141,18 @@ settings.addEventListener('click',()=>{
 usage.addEventListener('click',()=>{
     window.open("https://platform.openai.com/usage", '_blank');
 });
-
+down.addEventListener('click',()=>{
+    interaction.scrollTop=interaction.scrollHeight;
+    down.style.display='none';
+});
+function checkscrolltop(){
+    if(interaction.scrollTop<interaction.scrollHeight-interaction.clientHeight){
+        down.style.display='block';
+    }else{
+        down.style.display='none';
+    }
+}
+setInterval(checkscrolltop, 500);
 async function getAccount(){
     try{
         const response=await fetch('/getAccount',{
